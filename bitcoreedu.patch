@@ -1,0 +1,101 @@
+diff -ur bitcore-org/node_modules/bitcore-lib/lib/networks.js bitcore/node_modules/bitcore-lib/lib/networks.js
+--- bitcore-org/node_modules/bitcore-lib/lib/networks.js	2016-11-18 13:39:35.000000000 +0100
++++ bitcore/node_modules/bitcore-lib/lib/networks.js	2018-02-18 15:56:18.564791548 +0100
+@@ -134,15 +134,9 @@
+   scripthash: 0x05,
+   xpubkey: 0x0488b21e,
+   xprivkey: 0x0488ade4,
+-  networkMagic: 0xf9beb4d9,
++  networkMagic: 0xf9bec4d9,
+   port: 8333,
+   dnsSeeds: [
+-    'seed.bitcoin.sipa.be',
+-    'dnsseed.bluematt.me',
+-    'dnsseed.bitcoin.dashjr.org',
+-    'seed.bitcoinstats.com',
+-    'seed.bitnodes.io',
+-    'bitseed.xf2.org'
+   ]
+ });
+ 
+diff -ur bitcore-org/node_modules/insight-ui/public/views/includes/currency.html bitcore/node_modules/insight-ui/public/views/includes/currency.html
+--- bitcore-org/node_modules/insight-ui/public/views/includes/currency.html	2018-02-18 01:42:53.000000000 +0100
++++ bitcore/node_modules/insight-ui/public/views/includes/currency.html	2018-02-18 17:15:33.928791548 +0100
+@@ -6,10 +6,10 @@
+   <a data-ng-click="setCurrency('USD')" data-ng-class="{active: currency.symbol == 'USD'}">USD</a>
+   </li>
+   <li>
+-  <a data-ng-click="setCurrency('BTC')" data-ng-class="{active: currency.symbol == 'BTC'}">BTC</a>
++  <a data-ng-click="setCurrency('BTE')" data-ng-class="{active: currency.symbol == 'BTE'}">BTE</a>
+   </li>
+   <li>
+-  <a data-ng-click="setCurrency('mBTC')" data-ng-class="{active: currency.symbol == 'mBTC'}">mBTC</a>
++  <a data-ng-click="setCurrency('mBTE')" data-ng-class="{active: currency.symbol == 'mBTE'}">mBTE</a>
+   </li> 
+   <li>
+   <a data-ng-click="setCurrency('bits')" data-ng-class="{active: currency.symbol == 'bits'}">bits</a>
+diff -ur bitcore-org/node_modules/insight-ui/public/views/includes/header.html bitcore/node_modules/insight-ui/public/views/includes/header.html
+--- bitcore-org/node_modules/insight-ui/public/views/includes/header.html	2018-02-18 01:42:53.000000000 +0100
++++ bitcore/node_modules/insight-ui/public/views/includes/header.html	2018-02-18 17:15:34.196791548 +0100
+@@ -7,7 +7,7 @@
+         <span class="icon-bar"></span>
+         <span class="icon-bar"></span>
+       </button>
+-      <a class="insight navbar-brand" href=".">insight</a>
++      <a class="insight navbar-brand" href=".">insight</a><p>Bitcoin Edu</p>
+     </div>
+     <div class="navbar-collapse collapse" collapse="$root.isCollapsed">
+       <ul class="nav navbar-nav">
+diff -ur bitcore-org/node_modules/insight-ui/public/src/js/controllers/currency.js bitcore/node_modules/insight-ui/public/src/js/controllers/currency.js
+--- bitcore-org/node_modules/insight-ui/public/src/js/controllers/currency.js	2018-02-18 01:42:53.000000000 +0100
++++ bitcore/node_modules/insight-ui/public/src/js/controllers/currency.js	2018-02-18 18:53:36.309087735 +0100
+@@ -20,13 +20,13 @@
+ 
+         if (this.symbol === 'USD') {
+           response = _roundFloat((value * this.factor), 2);
+-        } else if (this.symbol === 'mBTC') {
++        } else if (this.symbol === 'mBTE') {
+           this.factor = 1000;
+           response = _roundFloat((value * this.factor), 5);
+         } else if (this.symbol === 'bits') {
+           this.factor = 1000000;
+           response = _roundFloat((value * this.factor), 2);
+-        } else { // assumes symbol is BTC
++        } else { // assumes symbol is BTE
+           this.factor = 1;
+           response = _roundFloat((value * this.factor), 8);
+         }
+@@ -47,7 +47,7 @@
+         Currency.get({}, function(res) {
+           $rootScope.currency.factor = $rootScope.currency.bitstamp = res.data.bitstamp;
+         });
+-      } else if (currency === 'mBTC') {
++      } else if (currency === 'mBTE') {
+         $rootScope.currency.factor = 1000;
+       } else if (currency === 'bits') {
+         $rootScope.currency.factor = 1000000;
+diff -ur bitcore-org/node_modules/insight-ui/public/src/js/controllers/header.js bitcore/node_modules/insight-ui/public/src/js/controllers/header.js
+--- bitcore-org/node_modules/insight-ui/public/src/js/controllers/header.js	2018-02-18 01:42:53.000000000 +0100
++++ bitcore/node_modules/insight-ui/public/src/js/controllers/header.js	2018-02-18 18:53:36.309087735 +0100
+@@ -7,7 +7,7 @@
+     $rootScope.currency = {
+       factor: 1,
+       bitstamp: 0,
+-      symbol: 'BTC'
++      symbol: 'BTE'
+     };
+ 
+     $scope.menu = [{
+diff -ur bitcore-org/node_modules/insight-ui/public/src/js/app.js bitcore/node_modules/insight-ui/public/src/js/app.js
+--- bitcore-org/node_modules/insight-ui/public/src/js/app.js	2018-02-18 19:08:37.909087735 +0100
++++ bitcore/node_modules/insight-ui/public/src/js/app.js	2018-02-18 01:42:53.000000000 +0100
+@@ -1,7 +1,7 @@
+ 'use strict';
+ 
+ var defaultLanguage = localStorage.getItem('insight-language') || 'en';
+-var defaultCurrency = localStorage.getItem('insight-currency') || 'BTC';
++var defaultCurrency = localStorage.getItem('insight-currency') || 'BTE';
+ 
+ angular.module('insight',[
+   'ngAnimate',
+

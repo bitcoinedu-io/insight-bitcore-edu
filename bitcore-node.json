@@ -1,0 +1,35 @@
+{
+  "version": "5.0.0-beta.44",
+  "network": "livenet",
+  "port": 3001,
+  "services": [
+      "db",
+      "timestamp",
+      "p2p",
+      "header",
+      "mempool",
+      "block",
+      "transaction",
+      "address",
+      "web",
+      "fee",
+      "insight-api",
+      "insight-ui"
+  ],
+  "datadir": "/home/edu/.bitcore/data",
+    "servicesConfig": {
+	"p2p": {
+	    "peers": [
+		{ "ip": { "v4": "127.0.0.1" } },
+		{ "ip": { "v4": "193.10.203.23" } }
+	    ]
+	},
+    "insight-api": {
+	"cwdRequirePath": "node_modules/insight-api",
+	"routePrefix": "api"
+    },
+    "insight-ui": {
+      "cwdRequirePath": "node_modules/insight-ui"
+    }
+  }
+}

@@ -1,0 +1,160 @@
+Notes about porting Insight, the Bitcoin explorer, to Bitcoin Edu.
+
+About Insight
+~~~~~~~~~~~~~
+
+- Quite complex due to many dependencies:
+
+Some of the Nodejs module dependencies:
+
+bitcore
+- bitcore-lib
+- bitcore-node
+   - bcoin
+   - bitcoind-rpc
+   - bitcore-lib
+   - bitcore-p2p
+     - bcoin
+     - bitcore-lib
+- insight-api
+   - bcoin
+   - bitcore-lib
+   - bitcore-lib-cash
+   - bitcore-message
+     - bitcore-lib
+- insight-ui (uses insight-api but no actual dependencies)
+
+Notes:
+
+- bitcore is actually only a wrapper around bitcore-node. It is just a
+  convenient way of getting insight-api and insight-ui included when
+  installing. You can get insight running just with bitcore-node by
+  including the insight dependencies in the package.json of bitcore-node.
+  This means that bitcore and bitcore-node are equivalent in terms of
+  configuration.
+
+- bitcore-node is a functional bitcoin node by itself, speaking the
+  fullnode bitcoin protocol directly. The bcoin javascript node is really
+  not needed. But, some code refer to utilities in bcoin so the bcoin
+  package needs to be included but bcoin doesn't need to be started.
+
+The different services as enabled in the configuration file
+(datadir)/bitcore-node.json also have dependencies. In this list, low-level
+services come first
+
+Example bitcore-node.json for Bitcoin Edu
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{
+  "version": "5.0.0-beta.44",
+  "network": "livenet",
+  "port": 3001,
+  "services": [
+      "db",
+      "timestamp",
+      "p2p",
+      "header",
+      "mempool",
+      "block",
+      "transaction",
+      "address",
+      "web",
+      "fee",
+      "insight-api",
+      "insight-ui"
+  ],
+  "datadir": "/home/edu/.bitcore/data",
+    "servicesConfig": {
+	"p2p": {
+	    "peers": [
+		{ "ip": { "v4": "127.0.0.1" } },
+		{ "ip": { "v4": "193.10.203.23" } }
+	    ]
+	},
+    "insight-api": {
+	"cwdRequirePath": "node_modules/insight-api",
+	"routePrefix": "api"
+    },
+    "insight-ui": {
+      "cwdRequirePath": "node_modules/insight-ui"
+    }
+  }
+}
+
+Notes:
+
+- At first run, the datadir is used to find existing blockchain data to
+  speed up syncing (probably handled by the "db" service). However, this is
+  optional, if the datadir is empty, all blocks are fetched from peers.
+
+- Then, it syncs with peers in the same way as a usual bitcoin node does.
+  This is handled by the "p2p" service and the bitcore-p2p module.
+
+- The bitcore node stores its own blockchain data in
+  (datadir)/bitcorenode.db/
+
+- By including the p2p peers ip config above, we disable the start of
+  the local bcoin node since it is really not needed, instead the bitcore
+  node will connect directly to other peers (local or remote).
+
+- The bitcore-lib and bitcore-p2p modules also include functionality for
+  the bitcoin dns seeds, so the ip-numbers in the config shouldn't really
+  be needed (for normal bitcoin). It is mainly used to disable the local
+  bcoin node.
+
+Installing Insight for Bitcoin Edu
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Idea:
+- Install nodejs
+- Fetch normal Insight as tar.gz
+- Build and install dependencies
+- Apply patches for Bitcoin Edu
+- Start
+- Insight will be upp and running on localhost:3001
+- Open firewall for public access
+
+First install nodejs (Debian, Ubuntu):
+
+curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+Bitcore 5.0.0-beta.44 is known to work:
+
+wget https://github.com/bitpay/bitcore/archive/v5.0.0-beta.44.tar.gz
+tar xfz v5.0.0-beta.44.tar.gz
+mv bitcore-5.0.0-beta.44 bitcore
+cd bitcore
+npm install
+(added 441 packages in 140.941s)
+
+(still in bitcore dir)
+patch -p1 < ~/bitcoreedu.patch
+
+Output:
+patching file node_modules/bitcore-lib/lib/networks.js
+patching file node_modules/insight-ui/public/views/includes/currency.html
+patching file node_modules/insight-ui/public/views/includes/header.html
+and some more...
+
+Prepare datadir before running:
+~/.bitcore
+~/.bitcore/data
+~/.bitcore/bitcore-node.json
+
+(update datadir path maybe in json-conf)
+
+cd bitcore
+./bin/bitcore start
+(or ./bin/bitcored)
+
+localhost:3001 should now be Insight UI
+
+Common problems:
+- build is a bit fragile, rebuild from start can help
+- check log output for actual config file used, bitcore-node easily finds
+  the wrong version...
+- Debug output in log:
+   setenv BITCORE_ENV debug
+   (or export BITCORE_ENV=debug if bash)
+
